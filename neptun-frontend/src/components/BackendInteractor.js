@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const BackendInteractor = () => {
-  const [tokenInfo, setTokenInfo] = useState({ name: '', symbol: '', total_supply: '' });
+  const [tokenInfo, setTokenInfo] = useState({});
 
   useEffect(() => {
     const fetchTokenInfo = async () => {
@@ -19,10 +18,9 @@ const BackendInteractor = () => {
   }, []);
 
   return (
-    <div className="container">
-      <h2>Token Name: {tokenInfo.name}</h2>
-      <h3>Symbol: {tokenInfo.symbol}</h3>
-      <h3>Total Supply: {tokenInfo.total_supply}</h3>
+    <div>
+      <h2>Token Info</h2>
+      <pre>{JSON.stringify(tokenInfo, null, 2)}</pre>
     </div>
   );
 };
