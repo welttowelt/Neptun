@@ -6,9 +6,8 @@ import "../src/MyToken.sol";
 
 contract DeployToken is Script {
     function run() external {
-        uint256 initialSupply = 1_000_000 * 10 ** 18;
         vm.startBroadcast();
-        new MyToken(initialSupply);
+        new MyToken(1000000 ether); // Initial supply
         vm.stopBroadcast();
     }
 }
