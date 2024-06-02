@@ -1,18 +1,21 @@
 import React from 'react';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import ContractInteractor from './components/ContractInteractor';
 import BackendInteractor from './components/BackendInteractor';
 
 function App() {
-  const carrotEmojis = '🥕'.repeat(1000); // Ändere die Zahl nach Bedarf, um mehr oder weniger Karotten-Emojis anzuzeigen
+  const carrotEmojis = '🥕'.repeat(1000);
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Welcome to Neptun DApp</h1>
-        <ContractInteractor />
-        <BackendInteractor />
-        <div style={{ marginTop: '20px', fontSize: '20px' }}>
+        <h1 className="display-4">🥕🥕🥕 Wheel and Deal Carrots 🥕🥕🥕</h1>
+        <div className="container mt-5">
+          <ContractInteractor />
+          <BackendInteractor />
+        </div>
+        <div className="carrot-container mt-3">
           {carrotEmojis}
         </div>
       </header>

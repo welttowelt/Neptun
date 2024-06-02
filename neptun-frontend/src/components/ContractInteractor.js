@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const contractAddress = "0x155469ecE36aa6108d9Ab3c64D24d8718389C38f";
 const contractABI = [
@@ -137,23 +138,29 @@ const ContractInteractor = () => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Total Supply: {totalSupply} MTK</h2>
-      <button onClick={fetchBalance}>Check Balance</button>
-      <h3>Balance: {balance} MTK</h3>
-      <input
-        type="text"
-        placeholder="Recipient Address"
-        value={recipient}
-        onChange={(e) => setRecipient(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
-      <button onClick={transferTokens}>Transfer Tokens</button>
+      <button onClick={fetchBalance} className="btn btn-primary mt-3">Check Balance</button>
+      <h3 className="mt-3">Balance: {balance} MTK</h3>
+      <div className="form-group mt-3">
+        <input
+          type="text"
+          placeholder="Recipient Address"
+          value={recipient}
+          onChange={(e) => setRecipient(e.target.value)}
+          className="form-control"
+        />
+      </div>
+      <div className="form-group mt-3">
+        <input
+          type="text"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="form-control"
+        />
+      </div>
+      <button onClick={transferTokens} className="btn btn-success mt-3">Transfer Tokens</button>
     </div>
   );
 };
