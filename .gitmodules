@@ -1,3 +1,6 @@
 [submodule "defi-contracts/lib/forge-std"]
 	path = defi-contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "defi-contracts/lib/openzeppelin-contracts"]
+	path = defi-contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
