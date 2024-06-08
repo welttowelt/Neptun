@@ -1,224 +1,432 @@
-import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { ethers } from "ethers";
+import axios from "axios";
 
-const contractAddress = "0x208F061f0b321B74e4D71549C50283C70eb56B0b"; // Deine Contract-Adresse
-const contractABI = [
+// Replace with your contract address
+const contractAddress = "0x208F061f0b321B74e4D71549C50283C70eb56B0b";
+
+// ABI for the contract
+const abi = [
   {
-    "constant": true,
-    "inputs": [],
-    "name": "totalSupply",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "initialSupply",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "allowance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientAllowance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "approver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidApprover",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidReceiver",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSender",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSpender",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Approval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "Staked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
     "outputs": [
       {
+        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
-        "name": "_owner",
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
         "type": "address"
       }
     ],
     "name": "balanceOf",
     "outputs": [
       {
-        "name": "balance",
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": false,
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "name": "_to",
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "getStake",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "stake",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
         "type": "address"
       },
       {
-        "name": "_value",
+        "internalType": "uint256",
+        "name": "value",
         "type": "uint256"
       }
     ],
     "name": "transfer",
     "outputs": [
       {
+        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
     ],
-    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "constant": false,
     "inputs": [
       {
-        "name": "_amount",
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
         "type": "uint256"
       }
     ],
-    "name": "stake",
-    "outputs": [],
-    "payable": false,
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   }
 ];
 
-const ContractInteractor = () => {
-  const [totalSupply, setTotalSupply] = useState(0);
-  const [balance, setBalance] = useState(0);
-  const [stake, setStake] = useState(0);
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
+class ContractInteractor {
+  constructor(provider, privateKey) {
+    this.provider = new ethers.providers.Web3Provider(provider);
+    this.signer = new ethers.Wallet(privateKey, this.provider);
+    this.contract = new ethers.Contract(contractAddress, abi, this.signer);
+  }
 
-  useEffect(() => {
-    const fetchTotalSupply = async () => {
-      if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
-
-        try {
-          const supply = await contract.totalSupply();
-          setTotalSupply(ethers.utils.formatUnits(supply, 18));
-        } catch (error) {
-          console.error("Error fetching total supply:", error);
-        }
-      } else {
-        console.error("MetaMask not installed");
-      }
-    };
-
-    fetchTotalSupply();
-  }, []);
-
-  const fetchBalance = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      try {
-        const address = await signer.getAddress();
-        const balance = await contract.balanceOf(address);
-        setBalance(ethers.utils.formatUnits(balance, 18));
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    } else {
-      console.error("MetaMask not installed");
+  async fetchBalance(address) {
+    try {
+      const balance = await this.contract.balanceOf(address);
+      return balance.toString();
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      throw error;
     }
-  };
+  }
 
-  const fetchStake = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      try {
-        const address = await signer.getAddress();
-        const stake = await contract.getStake(address);
-        setStake(ethers.utils.formatUnits(stake, 18));
-      } catch (error) {
-        console.error("Error fetching stake:", error);
-      }
-    } else {
-      console.error("MetaMask not installed");
+  async transferTokens(to, amount) {
+    try {
+      const tx = await this.contract.transfer(to, ethers.utils.parseUnits(amount, 18));
+      await tx.wait();
+      return tx;
+    } catch (error) {
+      console.error("Error transferring tokens:", error);
+      throw error;
     }
-  };
+  }
 
-  const transferTokens = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      try {
-        const tx = await contract.transfer(recipient, ethers.utils.parseUnits(amount, 18));
-        await tx.wait();
-        alert('Transfer successful');
-        fetchBalance(); // Update balance after transfer
-      } catch (error) {
-        console.error("Error transferring tokens:", error);
-        alert('Transfer failed');
-      }
-    } else {
-      console.error("MetaMask not installed");
+  async stakeTokens(amount) {
+    try {
+      const tx = await this.contract.stake(ethers.utils.parseUnits(amount, 18));
+      await tx.wait();
+      return tx;
+    } catch (error) {
+      console.error("Error staking tokens:", error);
+      throw error;
     }
-  };
+  }
 
-  const stakeTokens = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      try {
-        const address = await signer.getAddress();
-        const balance = await contract.balanceOf(address);
-        const parsedAmount = ethers.utils.parseUnits(amount, 18);
-
-        if (balance.lt(parsedAmount)) {
-          alert('Not enough balance to stake');
-          return;
-        }
-
-        const tx = await contract.stake(parsedAmount, { gasLimit: 3000000 });
-        await tx.wait();
-        alert('Staking successful');
-        fetchBalance();
-        fetchStake();
-      } catch (error) {
-        console.error("Error staking tokens:", error);
-        alert(`Staking failed: ${error.message}`);
-      }
-    } else {
-      console.error("MetaMask not installed");
+  async fetchTokenInfo() {
+    try {
+      const response = await axios.get("http://localhost:8080/token");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching token info:", error);
+      throw error;
     }
-  };
-
-  return (
-    <div className="container">
-      <h2>Total Supply: {totalSupply} MTK</h2>
-      <button onClick={fetchBalance} className="btn btn-primary mt-3">Check Balance</button>
-      <button onClick={fetchStake} className="btn btn-primary mt-3">Check Stake</button>
-      <h3 className="mt-3">Balance: {balance} MTK</h3>
-      <h3 className="mt-3">Stake: {stake} MTK</h3>
-      <div className="form-group mt-3">
-        <input
-          type="text"
-          placeholder="Recipient Address"
-          value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          className="form-control"
-        />
-      </div>
-      <div className="form-group mt-3">
-        <input
-          type="text"
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="form-control"
-        />
-      </div>
-      <button onClick={transferTokens} className="btn btn-primary mt-3">Transfer Tokens</button>
-      <button onClick={stakeTokens} className="btn btn-primary mt-3">Stake Tokens</button>
-    </div>
-  );
-};
+  }
+}
 
 export default ContractInteractor;
 
