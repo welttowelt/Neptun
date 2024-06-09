@@ -1,52 +1,57 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import { ethers } from 'ethers';
-import { fetchBalance, transferTokens, stakeTokens } from './ContractInteractor';
+import { init, fetchBalance, transferTokens, stakeTokens } from './ContractInteractor';
 
 function App() {
-  const [balance, setBalance] = useState(null);
-  const [amount, setAmount] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [stakingAmount, setStakingAmount] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [balance, setBalance] = useState(0);
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferTo, setTransferTo] = useState('');
 
-  async function getBalance() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await provider.send("eth_requestAccounts", []);
-    const balance = await fetchBalance(provider, accounts[0]);
+  useEffect(() => {
+    const initApp = async () => {
+      const address = await init();
+      setWalletAddress(address);
+      const balance = await fetchBalance(address);
+      setBalance(balance);
+    };
+
+    initApp();
+  }, []);
+
+  const handleTransfer = async () => {
+    await transferTokens(transferTo, transferAmount);
+    const balance = await fetchBalance(walletAddress);
     setBalance(balance);
-  }
+  };
 
-  async function handleTransfer() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    await transferTokens(provider, signer, recipient, ethers.utils.parseEther(amount));
-  }
-
-  async function handleStake() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    await stakeTokens(provider, signer, ethers.utils.parseEther(stakingAmount));
-  }
+  const handleStake = async () => {
+    await stakeTokens(stakeAmount);
+    const balance = await fetchBalance(walletAddress);
+    setBalance(balance);
+  };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Token Dashboard</h1>
-        <button onClick={getBalance}>Get Balance</button>
-        {balance && <p>Balance: {balance}</p>}
+        <h1>Welcome to the Crypto Staking App</h1>
+        <p>Shrecker iupdate: Das ist eine neue Änderung.</p>
+        <p>Your wallet address: {walletAddress}</p>
+        <p>Your balance: {balance}</p>
         <div>
           <h2>Transfer Tokens</h2>
           <input
             type="text"
-            placeholder="Recipient Address"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
+            placeholder="Recipient address"
+            value={transferTo}
+            onChange={(e) => setTransferTo(e.target.value)}
           />
           <input
             type="text"
             placeholder="Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={transferAmount}
+            onChange={(e) => setTransferAmount(e.target.value)}
           />
           <button onClick={handleTransfer}>Transfer</button>
         </div>
@@ -54,9 +59,9 @@ function App() {
           <h2>Stake Tokens</h2>
           <input
             type="text"
-            placeholder="Amount to Stake"
-            value={stakingAmount}
-            onChange={(e) => setStakingAmount(e.target.value)}
+            placeholder="Amount"
+            value={stakeAmount}
+            onChange={(e) => setStakeAmount(e.target.value)}
           />
           <button onClick={handleStake}>Stake</button>
         </div>
