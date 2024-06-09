@@ -35,8 +35,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Welcome to the Crypto Staking App</h1>
-        <p>Shrecker iupdate: Das ist eine neue Änderung.</p>
+        <h1>Welcome to the Galam Crypto Staking App</h1>
+        <p>Galam fix: Das ist eine weitere kleine Änderung.</p>
         <p>Your wallet address: {walletAddress}</p>
         <p>Your balance: {balance}</p>
         <div>
